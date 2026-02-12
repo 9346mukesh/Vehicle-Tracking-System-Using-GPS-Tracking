@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard - RideShare Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/voice-assistant.js') }}"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #000000;
+            --secondary: #00B87C;
+            --accent: #276EF1;
+            --bg-light: #F6F6F6;
+            --text-dark: #1A1A1A;
+            --text-gray: #6B6B6B;
+            --white: #FFFFFF;
+            --error: #E74C3C;
+            --success: #2ECC71;
+            --warning: #F39C12;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: var(--white);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .logo i {
+            color: var(--secondary);
+            margin-right: 0.5rem;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .voice-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .voice-btn:hover {
+            background: #1e5fd9;
+            transform: translateY(-2px);
+        }
+
+        .voice-btn.listening {
+            background: var(--error);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-light);
+            border-radius: 25px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* City Selector */
+        .city-selector {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .city-selector h3 {
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+        }
+
+        .city-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .city-btn {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid var(--bg-light);
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .city-btn:hover {
+            border-color: var(--accent);
+        }
+
+        .city-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        /* Map Container */
+        .map-section {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .map-header {
+            padding: 1.5rem;
+            background: var(--primary);
+            color: white;
+        }
+
+        .map-header h2 {
+            font-size: 1.5rem;
+        }
+
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+
+        /* Booking Form */
+        .booking-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .booking-section h2 {
+            margin-bottom: 1.5rem;
+            color: var(--text-dark);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--bg-light);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .fare-estimate {
+            background: var(--bg-light);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .fare-estimate h3 {
+            color: var(--text-dark);
+            font-size: 1.2rem;
+        }
+
+        .fare-amount {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary);
+            margin-top: 0.5rem;
+        }
+
+        .nearby-vehicles {
+            background: var(--bg-light);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .nearby-vehicles h4 {
+            margin-bottom: 0.5rem;
+        }
+
+        .vehicle-count {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .book-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .book-btn:hover {
+            background: #009968;
+            transform: translateY(-2px);
+        }
+
+        .book-btn:disabled {
+            background: var(--text-gray);
+            cursor: not-allowed;
+        }
+
+        /* Active Ride Panel */
+        .active-ride {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .active-ride.show {
+            display: block;
+        }
+
+        .ride-status {
+            background: var(--warning);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .driver-info {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            padding: 1rem;
+            background: var(--bg-light);
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .driver-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .cancel-btn {
+            background: var(--error);
+            color: white;
+        }
+
+        .call-btn {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Ride History */
+        .ride-history {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-top: 2rem;
+        }
+
+        .ride-history h2 {
+            margin-bottom: 1.5rem;
+        }
+
+        .ride-card {
+            padding: 1rem;
+            background: var(--bg-light);
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .ride-card-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .ride-date {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+        }
+
+        .ride-fare {
+            font-weight: bold;
+            color: var(--secondary);
+        }
+
+        /* Voice Transcript */
+        .voice-transcript {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            max-width: 400px;
+            display: none;
+        }
+
+        .voice-transcript.show {
+            display: block;
+        }
+
+        .transcript-text {
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .transcript-status {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .city-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">
+            <i class="fas fa-taxi"></i>
+            RideShare Pro
+        </div>
+        <div class="user-section">
+            <button class="voice-btn" id="voiceBtn">
+                <i class="fas fa-microphone"></i>
+                <span>Voice Assistant</span>
+            </button>
+            <div class="user-info">
+                <div class="user-avatar">{{ user.full_name[0]|upper }}</div>
+                <div>
+                    <div style="font-weight: 600;">{{ user.full_name }}</div>
+                    <div style="font-size: 0.85rem; color: var(--text-gray);">Customer</div>
+                </div>
+            </div>
+            <a href="/logout" style="color: var(--text-dark); font-size: 1.2rem;">
+                <i class="fas fa-sign-out-alt"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- City Selector -->
+        <div class="city-selector">
+            <h3><i class="fas fa-city"></i> Select City</h3>
+            <div class="city-buttons">
+                <button class="city-btn active" data-city="bangalore">
+                    <i class="fas fa-building"></i> Bangalore, India
+                </button>
+                <button class="city-btn" data-city="porto">
+                    <i class="fas fa-landmark"></i> Porto, Portugal
+                </button>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Map Section -->
+            <div class="map-section">
+                <div class="map-header">
+                    <h2><i class="fas fa-map-marked-alt"></i> Live Map</h2>
+                </div>
+                <div id="map"></div>
+            </div>
+
+            <!-- Booking Section -->
+            <div class="booking-section">
+                <h2><i class="fas fa-clipboard-list"></i> Book a Ride</h2>
+                
+                <div class="form-group">
+                    <label for="pickupLocation">
+                        <i class="fas fa-map-pin"></i> Pickup Location
+                    </label>
+                    <select id="pickupLocation">
+                        <option value="">Select pickup location...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="dropoffLocation">
+                        <i class="fas fa-flag-checkered"></i> Dropoff Location
+                    </label>
+                    <select id="dropoffLocation">
+                        <option value="">Select dropoff location...</option>
+                    </select>
+                </div>
+
+                <div class="fare-estimate" id="fareEstimate" style="display: none;">
+                    <h3>Estimated Fare</h3>
+                    <div class="fare-amount" id="fareAmount">₹0</div>
+                    <div style="font-size: 0.9rem; color: var(--text-gray); margin-top: 0.5rem;">
+                        Distance: <span id="distanceText">0 km</span>
+                    </div>
+                </div>
+
+                <div class="nearby-vehicles">
+                    <h4><i class="fas fa-car"></i> Nearby Vehicles</h4>
+                    <div class="vehicle-count" id="vehicleCount">0 available</div>
+                </div>
+
+                <button class="book-btn" id="bookBtn" disabled>
+                    <i class="fas fa-check-circle"></i> Book Ride
+                </button>
+            </div>
+        </div>
+
+        <!-- Active Ride Panel -->
+        <div class="active-ride" id="activeRide">
+            <h2><i class="fas fa-car-side"></i> Active Ride</h2>
+            <div class="ride-status" id="rideStatus">Waiting for driver...</div>
+            
+            <div class="driver-info" id="driverInfo" style="display: none;">
+                <div class="driver-avatar">D</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; font-size: 1.1rem;">Driver Name</div>
+                    <div style="color: var(--text-gray);">Vehicle Number</div>
+                    <div style="color: var(--secondary); margin-top: 0.25rem;">
+                        <i class="fas fa-star"></i> 4.8
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 0.9rem; color: var(--text-gray);">ETA</div>
+                    <div style="font-size: 1.5rem; font-weight: bold;">5 min</div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-btn cancel-btn" id="cancelBtn">
+                    <i class="fas fa-times-circle"></i> Cancel Ride
+                </button>
+                <button class="action-btn call-btn">
+                    <i class="fas fa-phone"></i> Call Driver
+                </button>
+            </div>
+        </div>
+
+        <!-- Ride History -->
+        <div class="ride-history">
+            <h2><i class="fas fa-history"></i> Recent Rides</h2>
+            <div id="rideHistoryList">
+                <!-- Ride cards will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Voice Transcript -->
+    <div class="voice-transcript" id="voiceTranscript">
+        <div class="transcript-text" id="transcriptText">Listening...</div>
+        <div class="transcript-status" id="transcriptStatus">Speak now</div>
+    </div>
+
+    <script>
+        // Global variables
+        let map;
+        let currentCity = 'bangalore';
+        let userMarker;
+        let vehicleMarkers = [];
+        let socket;
+        let currentRide = null;
+
+        // City configurations
+        const cityConfigs = {
+            bangalore: {
+                center: [12.9716, 77.5946],
+                zoom: 12,
+                currency: '₹'
+            },
+            porto: {
+                center: [41.1579, -8.6291],
+                zoom: 13,
+                currency: '€'
+            }
+        };
+
+        // Initialize map
+        function initMap() {
+            const config = cityConfigs[currentCity];
+            map = L.map('map').setView(config.center, config.zoom);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Add user marker
+            userMarker = L.marker(config.center, {
+                icon: L.divIcon({
+                    className: 'user-marker',
+                    html: '<div style="background: #276EF1; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white;"></div>',
+                    iconSize: [20, 20]
+                })
+            }).addTo(map).bindPopup('You are here');
+        }
+
+        // Load locations for city
+        function loadLocations() {
+            fetch(`/api/locations/${currentCity}`)
+                .then(res => res.json())
+                .then(data => {
+                    const pickup = document.getElementById('pickupLocation');
+                    const dropoff = document.getElementById('dropoffLocation');
+                    
+                    pickup.innerHTML = '<option value="">Select pickup location...</option>';
+                    dropoff.innerHTML = '<option value="">Select dropoff location...</option>';
+                    
+                    Object.keys(data.locations).forEach(key => {
+                        const loc = data.locations[key];
+                        pickup.innerHTML += `<option value="${key}">${loc.name}</option>`;
+                        dropoff.innerHTML += `<option value="${key}">${loc.name}</option>`;
+                    });
+                });
+        }
+
+        // Calculate fare estimate
+        function calculateFare() {
+            const pickup = document.getElementById('pickupLocation').value;
+            const dropoff = document.getElementById('dropoffLocation').value;
+
+            if (pickup && dropoff && pickup !== dropoff) {
+                fetch('/api/estimate-fare', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        city: currentCity,
+                        pickup_location: pickup,
+                        dropoff_location: dropoff
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('fareAmount').textContent = 
+                        `${cityConfigs[currentCity].currency}${data.fare}`;
+                    document.getElementById('distanceText').textContent = 
+                        `${data.distance.toFixed(2)} km`;
+                    document.getElementById('fareEstimate').style.display = 'block';
+                    document.getElementById('bookBtn').disabled = false;
+                });
+            }
+        }
+
+        // City selector
+        document.querySelectorAll('.city-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.city-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentCity = this.dataset.city;
+                
+                // Update map
+                const config = cityConfigs[currentCity];
+                map.setView(config.center, config.zoom);
+                userMarker.setLatLng(config.center);
+                
+                loadLocations();
+                loadNearbyVehicles();
+            });
+        });
+
+        // Location change handlers
+        document.getElementById('pickupLocation').addEventListener('change', calculateFare);
+        document.getElementById('dropoffLocation').addEventListener('change', calculateFare);
+
+        // Book ride
+        document.getElementById('bookBtn').addEventListener('click', function() {
+            const pickup = document.getElementById('pickupLocation').value;
+            const dropoff = document.getElementById('dropoffLocation').value;
+
+            fetch('/api/book-ride', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    city: currentCity,
+                    pickup_location: pickup,
+                    dropoff_location: dropoff
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    currentRide = data.ride;
+                    document.getElementById('activeRide').classList.add('show');
+                    document.getElementById('rideStatus').textContent = 'Finding driver...';
+                }
+            });
+        });
+
+        // Load nearby vehicles
+        function loadNearbyVehicles() {
+            fetch(`/api/nearby-vehicles/${currentCity}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('vehicleCount').textContent = 
+                        `${data.count} available`;
+                    
+                    // Clear old markers
+                    vehicleMarkers.forEach(m => map.removeLayer(m));
+                    vehicleMarkers = [];
+                    
+                    // Add vehicle markers
+                    data.vehicles.forEach(vehicle => {
+                        const lat = vehicle.current_lat ?? vehicle.lat;
+                        const lon = vehicle.current_lon ?? vehicle.lon;
+                        if (lat === undefined || lon === undefined || lat === null || lon === null) {
+                            return;
+                        }
+
+                        const marker = L.marker([lat, lon], {
+                            icon: L.divIcon({
+                                className: 'vehicle-marker',
+                                html: '<i class="fas fa-car" style="color: #00B87C; font-size: 20px;"></i>',
+                                iconSize: [20, 20]
+                            })
+                        }).addTo(map);
+                        vehicleMarkers.push(marker);
+                    });
+                });
+        }
+
+        // Initialize
+        initMap();
+        loadLocations();
+        loadNearbyVehicles();
+
+        // Socket.IO for real-time updates
+        socket = io();
+        socket.on('vehicle_update', function(data) {
+            loadNearbyVehicles();
+        });
+
+        socket.on('ride_update', function(data) {
+            if (currentRide && data.ride_id === currentRide.id) {
+                document.getElementById('rideStatus').textContent = data.status;
+                if (data.driver) {
+                    document.getElementById('driverInfo').style.display = 'flex';
+                }
+            }
+        });
+
+        function loadCustomerRideHistory() {
+            fetch('/api/customer/recent-rides')
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById('rideHistoryList');
+                    if (!container) {
+                        return;
+                    }
+                    if (!data.rides || data.rides.length === 0) {
+                        container.innerHTML = '<div class="ride-card"><div class="ride-card-header"><span>No rides yet</span><span class="ride-fare">-</span></div></div>';
+                        return;
+                    }
+
+                    container.innerHTML = data.rides.map(ride => `
+                        <div class="ride-card">
+                            <div class="ride-card-header">
+                                <span class="ride-date">${ride.date}</span>
+                                <span class="ride-fare">₹${ride.fare.toFixed(0)}</span>
+                            </div>
+                            <div>${ride.pickup_address} → ${ride.dropoff_address}</div>
+                            <div style="color: var(--text-gray); font-size: 0.9rem;">Status: ${ride.status}</div>
+                        </div>
+                    `).join('');
+                })
+                .catch(err => console.error('Error fetching ride history:', err));
+        }
+
+        loadCustomerRideHistory();
+        setInterval(loadCustomerRideHistory, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RideShare Pro - Your Journey, Our Priority</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #000000;
+            --secondary: #00B87C;
+            --accent: #276EF1;
+            --bg-light: #F6F6F6;
+            --text-dark: #1A1A1A;
+            --text-gray: #6B6B6B;
+            --white: #FFFFFF;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: var(--white);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            z-index: 1000;
+            padding: 1rem 0;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .logo i {
+            color: var(--secondary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--secondary);
+        }
+
+        .btn {
+            padding: 0.8rem 1.8rem;
+            border-radius: 50px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: #333;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-success {
+            background: var(--secondary);
+            color: var(--white);
+        }
+
+        .btn-success:hover {
+            background: #009964;
+            transform: translateY(-2px);
+        }
+
+        .hero {
+            margin-top: 80px;
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--bg-light) 0%, var(--white) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0,184,124,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            top: -300px;
+            right: -200px;
+        }
+
+        .hero-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-content h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+
+        .hero-content p {
+            font-size: 1.3rem;
+            color: var(--text-gray);
+            margin-bottom: 2.5rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .hero-image {
+            position: relative;
+            text-align: center;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .features {
+            padding: 6rem 2rem;
+            background: var(--white);
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--text-gray);
+            margin-bottom: 4rem;
+        }
+
+        .features-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .feature-card {
+            background: var(--white);
+            padding: 2.5rem 2rem;
+            border-radius: 20px;
+            text-align: center;
+            transition: all 0.3s;
+            border: 2px solid var(--bg-light);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            border-color: var(--secondary);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--secondary);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1.5rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .feature-card p {
+            color: var(--text-gray);
+            font-size: 1.05rem;
+        }
+
+        .cities {
+            padding: 6rem 2rem;
+            background: var(--bg-light);
+        }
+
+        .cities-grid {
+            max-width: 1200px;
+            margin: 4rem auto 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .city-card {
+            background: var(--white);
+            border-radius: 25px;
+            overflow: hidden;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .city-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        }
+
+        .city-image {
+            height: 200px;
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: var(--white);
+        }
+
+        .city-content {
+            padding: 2rem;
+        }
+
+        .city-content h3 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .city-content p {
+            color: var(--text-gray);
+            margin-bottom: 1.5rem;
+        }
+
+        .city-stats {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--text-gray);
+        }
+
+        .cta {
+            padding: 6rem 2rem;
+            background: var(--primary);
+            color: var(--white);
+            text-align: center;
+        }
+
+        .cta h2 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .cta p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .footer {
+            background: #0A0A0A;
+            color: var(--white);
+            padding: 3rem 2rem 1rem;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-section p {
+            opacity: 0.7;
+            line-height: 1.8;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .hero-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .nav-links {
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <i class="fas fa-car"></i>
+                RideShare Pro
+            </a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#cities">Cities</a>
+                <a href="/login" class="btn btn-secondary">Login</a>
+                <a href="/register" class="btn btn-primary">Sign Up</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1>Go anywhere with RideShare Pro</h1>
+                <p>Request a ride, hop in, and go. Choose from multiple cities with real-time tracking and AI-powered route optimization.</p>
+                <div class="hero-buttons">
+                    <a href="/register?role=customer" class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;">
+                        <i class="fas fa-rocket"></i> Get Started
+                    </a>
+                    <a href="/register?role=driver" class="btn btn-success" style="padding: 1rem 2.5rem; font-size: 1.1rem;">
+                        <i class="fas fa-car"></i> Drive & Earn
+                    </a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <i class="fas fa-map-marked-alt" style="font-size: 20rem; color: var(--secondary); opacity: 0.15;"></i>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <h2 class="section-title">Why choose RideShare Pro?</h2>
+        <p class="section-subtitle">Experience the future of urban mobility</p>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3>Lightning Fast</h3>
+                <p>Get matched with nearby drivers in seconds. Average pickup time under 5 minutes.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>Safe & Secure</h3>
+                <p>All drivers verified. Real-time tracking. 24/7 support for your peace of mind.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h3>AI-Powered</h3>
+                <p>Machine learning predicts ETAs with 89% accuracy for optimal route planning.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-microphone"></i>
+                </div>
+                <h3>Voice Commands</h3>
+                <p>Hands-free booking and navigation with advanced voice assistant integration.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <h3>Transparent Pricing</h3>
+                <p>No surge pricing surprises. Clear fare estimates before you book.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <h3>Multi-City Support</h3>
+                <p>Available in Bangalore and Porto. More cities coming soon!</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="cities" class="cities">
+        <h2 class="section-title">Available in Your City</h2>
+        <p class="section-subtitle">Choose your location and start riding</p>
+        <div class="cities-grid">
+            <div class="city-card">
+                <div class="city-image">
+                    <i class="fas fa-city"></i>
+                </div>
+                <div class="city-content">
+                    <h3>Bangalore</h3>
+                    <p>India's Silicon Valley with 10 active vehicles ready to serve you.</p>
+                    <div class="city-stats">
+                        <span><i class="fas fa-car"></i> 10 Vehicles</span>
+                        <span><i class="fas fa-users"></i> 50+ Drivers</span>
+                    </div>
+                </div>
+            </div>
+            <div class="city-card">
+                <div class="city-image" style="background: linear-gradient(135deg, #FF6B6B, #4ECDC4);">
+                    <i class="fas fa-landmark"></i>
+                </div>
+                <div class="city-content">
+                    <h3>Porto</h3>
+                    <p>Beautiful coastal city in Portugal with premium service vehicles.</p>
+                    <div class="city-stats">
+                        <span><i class="fas fa-car"></i> 10 Vehicles</span>
+                        <span><i class="fas fa-users"></i> 40+ Drivers</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <h2>Ready to ride?</h2>
+        <p>Join thousands of satisfied customers today</p>
+        <a href="/register" class="btn btn-success" style="padding: 1.2rem 3rem; font-size: 1.2rem;">
+            <i class="fas fa-rocket"></i> Get Started Now
+        </a>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>RideShare Pro</h4>
+                <p>The future of urban transportation. AI-powered, voice-enabled, and always available.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <p>About Us<br>Safety<br>Help Center<br>Careers</p>
+            </div>
+            <div class="footer-section">
+                <h4>For Drivers</h4>
+                <p>Become a Driver<br>Driver Requirements<br>Earnings<br>Support</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 RideShare Pro. All rights reserved. | Privacy Policy | Terms of Service</p>
+        </div>
+    </footer>
+</body>
+</html>
