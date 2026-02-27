@@ -12,3 +12,8 @@ env/
 dist/
 build/
 .DS_Store
+
+# Exclude files not to push to GitHub
+ARCHITECTURE_DIAGRAMS.md
+README_old.md
+Vehicle Tracking System using GPS Tracking_ Final Report.docx
