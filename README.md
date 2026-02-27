@@ -221,7 +221,7 @@ Vehicle-Tracking-System-Using-GPS-Tracking/
 
 ## 📸 Screenshots
 
-> _Screenshots will be added here._
+> Refer the ScreenShot Folder
 
 <!--  Refer the ScreenShot Folder
 Screenshots of your application pages:
@@ -248,7 +248,7 @@ Tejeswar - Content Writer & Data Preparation for ML training
 
 For questions or contributions, reach out:
 
-- **GitHub:** [https://github.com/9346mukesh](#)
+- **GitHub:** [https://github.com/9346mukesh](https://github.com/9346mukesh)
 
 ---
 
